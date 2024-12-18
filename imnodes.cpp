@@ -3258,4 +3258,44 @@ void LoadEditorStateFromIniFile(ImNodesEditorContext* const editor, const char* 
     LoadEditorStateFromIniString(editor, file_data, data_size);
     ImGui::MemFree(file_data);
 }
+
+const char* GetStyleColorName(ImNodesCol idx)
+{
+    switch (idx)
+    {
+    case ImNodesCol_NodeBackground:					  return "Node Background";
+    case ImNodesCol_NodeBackgroundHovered:			  return "Node Background Hovered";
+    case ImNodesCol_NodeBackgroundSelected:			  return "Node Background Selected";
+    case ImNodesCol_NodeOutline:					  return "Node Outline";
+    case ImNodesCol_TitleBar:						  return "TitleBar";
+    case ImNodesCol_TitleBarHovered:				  return "TitleBar Hovered";
+    case ImNodesCol_TitleBarSelected:				  return "TitleBar Selected";
+    case ImNodesCol_Link:							  return "Link";
+    case ImNodesCol_LinkHovered:					  return "Link Hovered";
+    case ImNodesCol_LinkSelected:					  return "Link Selected";
+    case ImNodesCol_Pin:							  return "Pin";
+    case ImNodesCol_PinHovered:						  return "Pin Hovered";
+    case ImNodesCol_BoxSelector:					  return "Box Selector";
+    case ImNodesCol_BoxSelectorOutline:				  return "Box SelectorOutline";
+    case ImNodesCol_GridBackground:					  return "Grid Background";
+    case ImNodesCol_GridLine:						  return "Grid Line";
+    case ImNodesCol_GridLinePrimary:				  return "Grid LinePrimary";
+    case ImNodesCol_MiniMapBackground:				  return "Mini Map Background";
+    case ImNodesCol_MiniMapBackgroundHovered:		  return "Mini Map Background Hovered";
+    case ImNodesCol_MiniMapOutline:					  return "Mini Map Outline";
+    case ImNodesCol_MiniMapOutlineHovered:			  return "Mini Map Outline Hovered";
+    case ImNodesCol_MiniMapNodeBackground:			  return "Mini Map Node Background";
+    case ImNodesCol_MiniMapNodeBackgroundHovered:	  return "Mini Map Node Background Hovered";
+    case ImNodesCol_MiniMapNodeBackgroundSelected:	  return "Mini Map Node Background Selected";
+    case ImNodesCol_MiniMapNodeOutline:				  return "Mini Map Node Outline";
+    case ImNodesCol_MiniMapLink:					  return "Mini Map Link";
+    case ImNodesCol_MiniMapLinkSelected:			  return "Mini Map Link Selected";
+    case ImNodesCol_MiniMapCanvas:					  return "Mini Map Canvas";
+    case ImNodesCol_MiniMapCanvasOutline:			  return "Mini Map Canvas Outline";
+    case ImNodesCol_COUNT:							  return "COUNT";
+    }
+
+    IM_ASSERT(0);
+    return "Unknown";
+}
 } // namespace IMNODES_NAMESPACE

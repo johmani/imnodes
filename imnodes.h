@@ -435,4 +435,5 @@ void SaveEditorStateToIniFile(const ImNodesEditorContext* editor, const char* fi
 
 void LoadCurrentEditorStateFromIniFile(const char* file_name);
 void LoadEditorStateFromIniFile(ImNodesEditorContext* editor, const char* file_name);
+const char* GetStyleColorName(ImNodesCol idx);
 } // namespace IMNODES_NAMESPACE
