@@ -819,9 +819,9 @@ ImVec2 SnapOriginToGrid(ImVec2 origin)
     return origin;
 }
 
-void TranslateSelectedNodes(ImNodesEditorContext& editor)
+void TranslateSelectedNodes(ImNodesEditorContext& editor, bool force)
 {
-    if (GImNodes->LeftMouseDragging)
+    if (force || GImNodes->LeftMouseDragging)
     {
         // If we have grid snap enabled, don't start moving nodes until we've moved the mouse
         // slightly
@@ -980,11 +980,19 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
     break;
     case ImNodesClickInteractionType_Node:
     {
-        TranslateSelectedNodes(editor);
+        if (!editor.NodeDraggingEnableStateOnce)
+        {
+            IM_ASSERT(GImNodes->HoveredNodeIdx.HasValue());
+            editor.NodeDraggingEnableStateOnce = true;
+            editor.NodeDraggingState = 1;
+        }
+
+        TranslateSelectedNodes(editor, false);
 
         if (GImNodes->LeftMouseReleased)
         {
             editor.ClickInteraction.Type = ImNodesClickInteractionType_None;
+            editor.NodeDraggingEnableStateOnce = false;
         }
     }
     break;
@@ -1423,6 +1431,8 @@ TriangleOffsets CalculateTriangleOffsets(const float side_length)
 
 void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_color)
 {
+    static const int CIRCLE_NUM_SEGMENTS = 32;
+
     switch (pin.Shape)
     {
     case ImNodesPinShape_Circle:
@@ -2275,6 +2285,11 @@ void BeginNodeEditor()
 
     GImNodes->ActiveAttribute = false;
 
+    if (editor.ClickInteraction.Type == ImNodesClickInteractionType_Node && GImNodes->LeftMouseReleased)
+    {
+        editor.NodeDraggingState = 2;
+    }
+
     ImGui::BeginGroup();
     {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(1.f, 1.f));
@@ -2312,6 +2327,8 @@ void EndNodeEditor()
     GImNodes->CurrentScope = ImNodesScope_None;
 
     ImNodesEditorContext& editor = EditorContextGet();
+
+    editor.NodeDraggingState = 0;
 
     bool no_grid_content = editor.GridContentBounds.IsInverted();
     if (no_grid_content)
@@ -2955,6 +2972,32 @@ bool IsLinkSelected(int link_id)
 {
     ImNodesEditorContext& editor = EditorContextGet();
     return IsObjectSelected(editor.Links, editor.SelectedLinkIndices, link_id);
+}
+
+bool IsNodesDragBegin(int* num_selected_nodes)
+{
+    ImNodesEditorContext& editor = *GImNodes->EditorCtx;
+
+    if (editor.NodeDraggingState == 1)
+    {
+        *num_selected_nodes = editor.SelectedNodeIndices.size();
+        return true;
+    }
+
+    return false;
+}
+
+bool IsNodesDragEnd(int* num_selected_nodes)
+{
+    ImNodesEditorContext& editor = *GImNodes->EditorCtx;
+
+    if (editor.NodeDraggingState == 2)
+    {
+        *num_selected_nodes = editor.SelectedNodeIndices.size();
+        TranslateSelectedNodes(editor, true);
+        return true;
+    }
+    return false;
 }
 
 bool IsAttributeActive()

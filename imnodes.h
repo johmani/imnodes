@@ -387,6 +387,11 @@ IMGUI_API void SelectLink(int link_id);
 IMGUI_API void ClearLinkSelection(int link_id);
 IMGUI_API bool IsLinkSelected(int link_id);
 
+// Returns true if the user just started dragging a node
+IMGUI_API bool IsNodesDragBegin(int* num_selected_nodes);
+// Returns true if the user just stopped (released) the node after dragging it
+IMGUI_API bool IsNodesDragEnd(int* num_selected_nodes);
+
 // Was the previous attribute active? This will continuously return true while the left mouse button
 // is being pressed over the UI content of the attribute.
 IMGUI_API bool IsAttributeActive();
