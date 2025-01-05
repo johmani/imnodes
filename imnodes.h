@@ -194,6 +194,8 @@ struct ImNodesStyle
     // Offsets the pins' positions from the edge of the node to the outside of the node.
     float PinOffset;
 
+    int PinCircleNumSegments;
+
     // Mini-map padding size between mini-map edge and mini-map content.
     ImVec2 MiniMapPadding;
     // Mini-map offset from the screen side.

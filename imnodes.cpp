@@ -1039,6 +1039,37 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
 
         const CubicBezier cubic_bezier = GetCubicBezier(
             start_pos, end_pos, start_pin.Type, GImNodes->Style.LinkLineSegmentsPerLength);
+
+        {
+            GImNodes->CanvasDrawList->AddCircleFilled(
+                cubic_bezier.P0,
+                GImNodes->Style.PinCircleRadius * 0.6f,
+                GImNodes->Style.Colors[ImNodesCol_Link],
+                GImNodes->Style.PinCircleNumSegments
+            );
+            GImNodes->CanvasDrawList->AddCircle(
+                cubic_bezier.P0,
+                GImNodes->Style.PinCircleRadius * 0.6f,
+                0xFF000000,
+                GImNodes->Style.PinCircleNumSegments,
+                GImNodes->Style.PinLineThickness
+            );
+
+            GImNodes->CanvasDrawList->AddCircleFilled(
+                cubic_bezier.P3,
+                GImNodes->Style.PinCircleRadius * 0.6f,
+                GImNodes->Style.Colors[ImNodesCol_Link],
+                GImNodes->Style.PinCircleNumSegments
+            );
+            GImNodes->CanvasDrawList->AddCircle(
+                cubic_bezier.P3,
+                GImNodes->Style.PinCircleRadius * 0.6f,
+                0xFF000000,
+                GImNodes->Style.PinCircleNumSegments,
+                GImNodes->Style.PinLineThickness
+            );
+        }
+
 #if IMGUI_VERSION_NUM < 18000
         GImNodes->CanvasDrawList->AddBezierCurve(
 #else
@@ -1052,18 +1083,12 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
             GImNodes->Style.LinkThickness,
             cubic_bezier.NumSegments);
 
-        const bool link_creation_on_snap =
-            GImNodes->HoveredPinIdx.HasValue() &&
-            (editor.Pins.Pool[GImNodes->HoveredPinIdx.Value()].Flags &
-             ImNodesAttributeFlags_EnableLinkCreationOnSnap);
-
         if (!should_snap)
         {
             editor.ClickInteraction.LinkCreation.EndPinIdx.Reset();
         }
 
-        const bool create_link =
-            should_snap && (GImNodes->LeftMouseReleased || link_creation_on_snap);
+        const bool create_link = should_snap && GImNodes->LeftMouseReleased;
 
         if (create_link && !maybe_duplicate_link_idx.HasValue())
         {
@@ -1398,8 +1423,6 @@ TriangleOffsets CalculateTriangleOffsets(const float side_length)
 
 void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_color)
 {
-    static const int CIRCLE_NUM_SEGMENTS = 8;
-
     switch (pin.Shape)
     {
     case ImNodesPinShape_Circle:
@@ -1408,14 +1431,26 @@ void DrawPinShape(const ImVec2& pin_pos, const ImPinData& pin, const ImU32 pin_c
             pin_pos,
             GImNodes->Style.PinCircleRadius,
             pin_color,
-            CIRCLE_NUM_SEGMENTS,
-            GImNodes->Style.PinLineThickness);
+            GImNodes->Style.PinCircleNumSegments,
+            GImNodes->Style.PinLineThickness
+        );
     }
     break;
     case ImNodesPinShape_CircleFilled:
     {
         GImNodes->CanvasDrawList->AddCircleFilled(
-            pin_pos, GImNodes->Style.PinCircleRadius, pin_color, CIRCLE_NUM_SEGMENTS);
+            pin_pos,
+            GImNodes->Style.PinCircleRadius,
+            pin_color,
+            GImNodes->Style.PinCircleNumSegments
+        );
+        GImNodes->CanvasDrawList->AddCircle(
+            pin_pos,
+            GImNodes->Style.PinCircleRadius,
+            0xFF000000,
+            GImNodes->Style.PinCircleNumSegments,
+            GImNodes->Style.PinLineThickness
+        );
     }
     break;
     case ImNodesPinShape_Quad:
@@ -1991,7 +2026,7 @@ ImNodesStyle::ImNodesStyle()
     : GridSpacing(24.f), NodeCornerRounding(4.f), NodePadding(8.f, 8.f), NodeBorderThickness(1.f),
       LinkThickness(3.f), LinkLineSegmentsPerLength(0.1f), LinkHoverDistance(10.f),
       PinCircleRadius(4.f), PinQuadSideLength(7.f), PinTriangleSideLength(9.5),
-      PinLineThickness(1.f), PinHoverRadius(10.f), PinOffset(0.f), MiniMapPadding(8.0f, 8.0f),
+      PinLineThickness(1.f), PinHoverRadius(10.f), PinOffset(0.f), PinCircleNumSegments(16), MiniMapPadding(8.0f, 8.0f),
       MiniMapOffset(4.0f, 4.0f), Flags(ImNodesStyleFlags_NodeOutline | ImNodesStyleFlags_GridLines),
       Colors()
 {
