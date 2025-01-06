@@ -1091,12 +1091,18 @@ void ClickInteractionUpdate(ImNodesEditorContext& editor)
             GImNodes->Style.LinkThickness,
             cubic_bezier.NumSegments);
 
+        const bool link_creation_on_snap =
+            GImNodes->HoveredPinIdx.HasValue() &&
+            (editor.Pins.Pool[GImNodes->HoveredPinIdx.Value()].Flags &
+                ImNodesAttributeFlags_EnableLinkCreationOnSnap);
+
         if (!should_snap)
         {
             editor.ClickInteraction.LinkCreation.EndPinIdx.Reset();
         }
 
-        const bool create_link = should_snap && GImNodes->LeftMouseReleased;
+        const bool create_link =
+            should_snap && (GImNodes->LeftMouseReleased || link_creation_on_snap);
 
         if (create_link && !maybe_duplicate_link_idx.HasValue())
         {
