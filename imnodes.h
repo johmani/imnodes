@@ -98,13 +98,15 @@ enum ImNodesAttributeFlags_
     // Allow detaching a link by left-clicking and dragging the link at a pin it is connected to.
     // NOTE: the user has to actually delete the link for this to work. A deleted link can be
     // detected by calling IsLinkDestroyed() after EndNodeEditor().
-    ImNodesAttributeFlags_EnableLinkDetachWithDragClick = 1 << 0,
+    ImNodesAttributeFlags_EnableLinkStartPinDetachWithDragClick = 1 << 0,
+    ImNodesAttributeFlags_EnableLinkEndPinDetachWithDragClick = 1 << 1,
+    ImNodesAttributeFlags_EnableLinkDetachWithDragClick = ImNodesAttributeFlags_EnableLinkStartPinDetachWithDragClick | ImNodesAttributeFlags_EnableLinkEndPinDetachWithDragClick,
     // Visual snapping of an in progress link will trigger IsLink Created/Destroyed events. Allows
     // for previewing the creation of a link while dragging it across attributes. See here for demo:
     // https://github.com/Nelarius/imnodes/issues/41#issuecomment-647132113 NOTE: the user has to
     // actually delete the link for this to work. A deleted link can be detected by calling
     // IsLinkDestroyed() after EndNodeEditor().
-    ImNodesAttributeFlags_EnableLinkCreationOnSnap = 1 << 1
+    ImNodesAttributeFlags_EnableLinkCreationOnSnap = 1 << 2
 };
 
 struct ImNodesIO
@@ -151,6 +153,12 @@ struct ImNodesIO
         // currently selected nodes. If this value is NULL, the Ctrl key will be used.
         const bool* Modifier;
     } MultipleSelectModifier;
+
+    struct LinkSelectModifier
+    {
+        LinkSelectModifier();
+        const bool* Modifier;
+    } LinkSelectModifier;
 
     // Holding alt mouse button pans the node area, by default middle mouse button will be used
     // Set based on ImGuiMouseButton values

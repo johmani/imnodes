@@ -692,7 +692,15 @@ void BeginLinkInteraction(
             const int hovered_pin_flags = editor.Pins.Pool[pin_idx.Value()].Flags;
 
             // Check the 'click and drag to detach' case.
-            if (hovered_pin_flags & ImNodesAttributeFlags_EnableLinkDetachWithDragClick)
+
+            const ImLinkData& link = editor.Links.Pool[link_idx];
+
+            if (pin_idx.Value() == link.StartPinIdx && hovered_pin_flags & ImNodesAttributeFlags_EnableLinkStartPinDetachWithDragClick)
+            {
+                BeginLinkDetach(editor, link_idx, pin_idx.Value());
+                editor.ClickInteraction.LinkCreation.Type = ImNodesLinkCreationType_FromDetach;
+            }
+            else if (pin_idx.Value() == link.EndPinIdx && hovered_pin_flags & ImNodesAttributeFlags_EnableLinkEndPinDetachWithDragClick)
             {
                 BeginLinkDetach(editor, link_idx, pin_idx.Value());
                 editor.ClickInteraction.LinkCreation.Type = ImNodesLinkCreationType_FromDetach;
@@ -757,16 +765,20 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
 
     editor.SelectedNodeIndices.clear();
 
-    // Test for overlap against node rectangles
+    bool IslinkSelectionMode = !GImNodes->Io.LinkSelectModifier.Modifier ? false : *GImNodes->Io.LinkSelectModifier.Modifier;
 
-    for (int node_idx = 0; node_idx < editor.Nodes.Pool.size(); ++node_idx)
+    // Test for overlap against node rectangles
+    if (!IslinkSelectionMode)
     {
-        if (editor.Nodes.InUse[node_idx])
+        for (int node_idx = 0; node_idx < editor.Nodes.Pool.size(); ++node_idx)
         {
-            ImNodeData& node = editor.Nodes.Pool[node_idx];
-            if (box_rect.Overlaps(node.Rect))
+            if (editor.Nodes.InUse[node_idx])
             {
-                editor.SelectedNodeIndices.push_back(node_idx);
+                ImNodeData& node = editor.Nodes.Pool[node_idx];
+                if (box_rect.Overlaps(node.Rect))
+                {
+                    editor.SelectedNodeIndices.push_back(node_idx);
+                }
             }
         }
     }
@@ -776,27 +788,27 @@ void BoxSelectorUpdateSelection(ImNodesEditorContext& editor, ImRect box_rect)
     editor.SelectedLinkIndices.clear();
 
     // Test for overlap against links
-
-    for (int link_idx = 0; link_idx < editor.Links.Pool.size(); ++link_idx)
+    if (IslinkSelectionMode)
     {
-        if (editor.Links.InUse[link_idx])
+        for (int link_idx = 0; link_idx < editor.Links.Pool.size(); ++link_idx)
         {
-            const ImLinkData& link = editor.Links.Pool[link_idx];
-
-            const ImPinData& pin_start = editor.Pins.Pool[link.StartPinIdx];
-            const ImPinData& pin_end = editor.Pins.Pool[link.EndPinIdx];
-            const ImRect&    node_start_rect = editor.Nodes.Pool[pin_start.ParentNodeIdx].Rect;
-            const ImRect&    node_end_rect = editor.Nodes.Pool[pin_end.ParentNodeIdx].Rect;
-
-            const ImVec2 start = GetScreenSpacePinCoordinates(
-                node_start_rect, pin_start.AttributeRect, pin_start.Type);
-            const ImVec2 end =
-                GetScreenSpacePinCoordinates(node_end_rect, pin_end.AttributeRect, pin_end.Type);
-
-            // Test
-            if (RectangleOverlapsLink(box_rect, start, end, pin_start.Type))
+            if (editor.Links.InUse[link_idx])
             {
-                editor.SelectedLinkIndices.push_back(link_idx);
+                const ImLinkData& link = editor.Links.Pool[link_idx];
+
+                const ImPinData& pin_start = editor.Pins.Pool[link.StartPinIdx];
+                const ImPinData& pin_end = editor.Pins.Pool[link.EndPinIdx];
+                const ImRect&    node_start_rect = editor.Nodes.Pool[pin_start.ParentNodeIdx].Rect;
+                const ImRect&    node_end_rect = editor.Nodes.Pool[pin_end.ParentNodeIdx].Rect;
+
+                const ImVec2 start = GetScreenSpacePinCoordinates(node_start_rect, pin_start.AttributeRect, pin_start.Type);
+                const ImVec2 end = GetScreenSpacePinCoordinates(node_end_rect, pin_end.AttributeRect, pin_end.Type);
+
+                // Test
+                if (RectangleOverlapsLink(box_rect, start, end, pin_start.Type))
+                {
+                    editor.SelectedLinkIndices.push_back(link_idx);
+                }
             }
         }
     }
@@ -2031,6 +2043,8 @@ ImNodesIO::EmulateThreeButtonMouse::EmulateThreeButtonMouse() : Modifier(NULL) {
 ImNodesIO::LinkDetachWithModifierClick::LinkDetachWithModifierClick() : Modifier(NULL) {}
 
 ImNodesIO::MultipleSelectModifier::MultipleSelectModifier() : Modifier(NULL) {}
+
+ImNodesIO::LinkSelectModifier::LinkSelectModifier() : Modifier( &ImGui::GetIO().KeyCtrl) {}
 
 ImNodesIO::ImNodesIO()
     : EmulateThreeButtonMouse(), LinkDetachWithModifierClick(),
